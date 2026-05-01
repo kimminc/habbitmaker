@@ -9,6 +9,7 @@ import { HabitManageSection } from '@/features/habits/components/HabitManageSect
 import { HabitStats } from '@/features/habits/components/HabitStats'
 import { LogoutButton } from '@/features/auth/components/LogoutButton'
 import { ThemeToggle } from '@/features/navigation/components/ThemeToggle'
+import { useRouter, usePathname } from 'next/navigation'
 import Image from 'next/image'
 import type { Habit, HabitMood } from '@/types/database'
 
@@ -21,6 +22,8 @@ interface DashboardShellProps {
   localDate?: string
   userEmail?: string
   avatarUrl?: string
+  isAdmin?: boolean
+  initialSection?: Section
   children?: React.ReactNode
 }
 
@@ -30,6 +33,7 @@ const SECTION_TITLES: Record<Section, string> = {
   add:    '➕ 습관 추가하기',
   stats:  '📊 습관 통계',
   settings: '⚙️ 설정',
+  admin:  '🛡️ 관리자 대시보드',
 }
 
 const contentVariants = {
@@ -47,10 +51,27 @@ export function DashboardShell({
   localDate,
   userEmail,
   avatarUrl,
+  isAdmin,
+  initialSection = 'home',
   children,
 }: DashboardShellProps) {
-  const [activeSection, setActiveSection] = useState<Section>('home')
+  const [activeSection, setActiveSection] = useState<Section>(initialSection)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const router = useRouter()
+  const pathname = usePathname()
+
+  const handleSectionChange = (section: Section) => {
+    if (section === 'admin' && pathname !== '/admin') {
+      router.push('/admin')
+      return
+    }
+    if (section !== 'admin' && pathname === '/admin') {
+      router.push('/dashboard')
+      // 쿼리 스트링 등으로 섹션을 넘길 수 있지만, 일단 대시보드 홈으로 보냄
+      return
+    }
+    setActiveSection(section)
+  }
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-gray-50 dark:bg-gray-950 md:flex-row">
@@ -80,20 +101,25 @@ export function DashboardShell({
       {/* 사이드바 */}
       <Sidebar
         activeSection={activeSection}
-        onSelect={setActiveSection}
+        onSelect={handleSectionChange}
         userEmail={userEmail}
         avatarUrl={avatarUrl}
+        isAdmin={isAdmin}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />
 
       {/* 하단 네비게이션 (모바일 전용) */}
-      <BottomNav activeSection={activeSection} onSelect={setActiveSection} />
+      <BottomNav 
+        activeSection={activeSection} 
+        onSelect={handleSectionChange} 
+        isAdmin={isAdmin} 
+      />
 
       {/* 콘텐츠 영역 */}
       <main className="flex-1 overflow-y-auto pb-24 md:pb-0">
         <div className={`mx-auto p-4 md:p-8 transition-all duration-500 ${
-          (activeSection === 'manage' || activeSection === 'stats' || activeSection === 'settings') ? 'max-w-6xl' : 'max-w-2xl'
+          (activeSection === 'manage' || activeSection === 'stats' || activeSection === 'settings' || activeSection === 'admin') ? 'max-w-6xl' : 'max-w-2xl'
         }`}>
           {/* 섹션 타이틀 */}
           <motion.h2

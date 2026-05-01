@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { LogoutButton } from '@/features/auth/components/LogoutButton'
 import { ThemeToggle } from './ThemeToggle'
 
-export type Section = 'home' | 'manage' | 'add' | 'stats' | 'settings'
+export type Section = 'home' | 'manage' | 'add' | 'stats' | 'settings' | 'admin'
 
 const MENU_ITEMS: { id: Section; icon: string; label: string }[] = [
   { id: 'home',   icon: '🏠', label: 'HOME'        },
@@ -19,6 +19,7 @@ interface SidebarProps {
   onSelect: (section: Section) => void
   userEmail?: string
   avatarUrl?: string
+  isAdmin?: boolean
   isOpen?: boolean
   onClose?: () => void
 }
@@ -72,7 +73,10 @@ export function Sidebar({ activeSection, onSelect, userEmail, avatarUrl, isOpen,
 
         {/* 메뉴 */}
         <nav className="flex-1 space-y-1 p-4">
-          {MENU_ITEMS.map((item, i) => (
+          {[
+            ...MENU_ITEMS,
+            ...(isAdmin ? [{ id: 'admin' as Section, icon: '🛡️', label: '관리자' }] : [])
+          ].map((item, i) => (
             <motion.button
               key={item.id}
               initial={{ x: -20, opacity: 0 }}

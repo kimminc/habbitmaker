@@ -9,10 +9,11 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   const localDate = getLocalDateString()
-  const [habitsResult, logsResult, statsResult] = await Promise.all([
+  const [habitsResult, logsResult, statsResult, profileResult] = await Promise.all([
     getHabits(),
     getTodayLogs(localDate),
-    getHabitStats()
+    getHabitStats(),
+    user ? supabase.from('profiles').select('is_admin').eq('id', user.id).single() : Promise.resolve({ data: null })
   ])
 
   const habits: Habit[] = habitsResult.data ?? []
@@ -35,6 +36,7 @@ export default async function DashboardPage() {
       localDate={localDate}
       userEmail={user?.email}
       avatarUrl={user?.user_metadata?.avatar_url as string | undefined}
+      isAdmin={profileResult.data?.is_admin === 'Y'}
     />
   )
 }

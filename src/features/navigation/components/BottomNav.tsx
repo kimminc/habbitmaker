@@ -1,12 +1,13 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Home, LayoutList, BarChart3, Settings } from 'lucide-react'
+import { Home, LayoutList, BarChart3, Settings, ShieldAlert } from 'lucide-react'
 import { type Section } from './Sidebar'
 
 interface BottomNavProps {
   activeSection: Section
   onSelect: (section: Section) => void
+  isAdmin?: boolean
 }
 
 const NAV_ITEMS: { id: Section; icon: any; label: string }[] = [
@@ -16,10 +17,15 @@ const NAV_ITEMS: { id: Section; icon: any; label: string }[] = [
   { id: 'settings', icon: Settings, label: '설정' },
 ]
 
-export function BottomNav({ activeSection, onSelect }: BottomNavProps) {
+export function BottomNav({ activeSection, onSelect, isAdmin }: BottomNavProps) {
+  const items = [
+    ...NAV_ITEMS,
+    ...(isAdmin ? [{ id: 'admin' as Section, icon: ShieldAlert, label: '관리자' }] : [])
+  ]
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-gray-100 bg-white/80 pb-safe pt-2 backdrop-blur-lg dark:border-gray-800 dark:bg-gray-900/80 md:hidden">
-      {NAV_ITEMS.map((item) => {
+      {items.map((item) => {
         const Icon = item.icon
         const isActive = activeSection === item.id
 
