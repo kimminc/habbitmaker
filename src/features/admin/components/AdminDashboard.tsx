@@ -245,7 +245,7 @@ export function AdminDashboard({ data }: AdminDashboardProps) {
                                         
                                         {/* User Comment */}
                                         <div className="mt-3 rounded-xl bg-gray-50 p-3 dark:bg-gray-800/50 italic text-sm text-gray-600 dark:text-gray-400">
-                                          "{habit.comment || '남긴 코멘트가 없습니다.'}"
+                                          &quot;{habit.comment || '남긴 코멘트가 없습니다.'}&quot;
                                         </div>
 
                                         {/* Admin Reply Area */}
