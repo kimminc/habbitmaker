@@ -2,12 +2,15 @@
 
 // Design Ref: §4.1 — Auth Server Actions. Application layer.
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import type { ActionResult } from '@/types/database'
 
 export async function signInWithGoogle() {
   const supabase = createClient()
-  const origin = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+  const host = headers().get('host')
+  const protocol = host?.includes('localhost') ? 'http' : 'https'
+  const origin = `${protocol}://${host}`
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
