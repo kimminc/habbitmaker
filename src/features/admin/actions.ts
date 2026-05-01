@@ -20,27 +20,36 @@ export async function getAdminDashboardData() {
     return { data: null, error: '관리자 권한이 없습니다.' }
   }
 
-  // 데이터 조회 (최근 30일 기준)
+  const todayStr = format(startOfToday(), 'yyyy-MM-dd')
   const thirtyDaysAgo = format(subDays(startOfToday(), 30), 'yyyy-MM-dd')
 
-  const [profilesRes, habitsRes, logsRes] = await Promise.all([
+  const [profilesRes, habitsRes, logsRes, todayLogsRes] = await Promise.all([
     supabase.from('profiles').select('id, email, is_admin, created_at').order('created_at', { ascending: false }),
-    supabase.from('habits').select('id, user_id, title, created_at').is('deleted_at', null),
-    supabase.from('habit_logs').select('user_id, log_date').gte('log_date', thirtyDaysAgo)
+    supabase.from('habits').select('id, user_id, title, created_at, color').is('deleted_at', null),
+    supabase.from('habit_logs').select('user_id, log_date').gte('log_date', thirtyDaysAgo),
+    supabase.from('habit_logs').select('user_id, habit_id, log_date').eq('log_date', todayStr)
   ])
 
   if (profilesRes.error) return { data: null, error: profilesRes.error.message }
   
   const allProfiles = profilesRes.data || []
   const allHabits = habitsRes.data || []
-  const allLogs = logsRes.error ? [] : (logsRes.data || [])
+  const allLogs = logsRes.data || []
+  const allTodayLogs = todayLogsRes.data || []
 
   // 사용자별 통계 가공
   const userStats = allProfiles.map(p => {
     const userHabits = allHabits.filter(h => h.user_id === p.id)
     const userLogs = allLogs.filter(l => l.user_id === p.id)
+    const userTodayLogs = allTodayLogs.filter(l => l.user_id === p.id)
     
-    // 가입일로부터 경과일 (최대 30일)
+    // 오늘의 습관 상세 상태
+    const todayDetails = userHabits.map(h => ({
+      id: h.id,
+      title: h.title,
+      color: h.color,
+      isCompleted: userTodayLogs.some(l => l.habit_id === h.id)
+    }))
     const daysSinceJoin = Math.min(30, Math.max(1, differenceInDays(startOfToday(), new Date(p.created_at))))
     
     // 이론적 최대 완료 가능 횟수 (습관 수 * 경과일)
@@ -54,7 +63,8 @@ export async function getAdminDashboardData() {
       createdAt: p.created_at,
       habitCount: userHabits.length,
       logCount: userLogs.length,
-      completionRate
+      completionRate,
+      todayDetails
     }
   })
 
