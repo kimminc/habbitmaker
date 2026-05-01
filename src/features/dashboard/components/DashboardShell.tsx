@@ -46,20 +46,39 @@ export function DashboardShell({
   children,
 }: DashboardShellProps) {
   const [activeSection, setActiveSection] = useState<Section>('home')
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
+    <div className="flex h-screen flex-col overflow-hidden bg-gray-50 dark:bg-gray-950 md:flex-row">
+      {/* 모바일 상단 헤더 */}
+      <header className="flex items-center justify-between border-b border-gray-100 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900 md:hidden">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">🌻</span>
+          <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">HabbitMaker</h1>
+        </div>
+        <button 
+          onClick={() => setIsSidebarOpen(true)}
+          className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+        >
+          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </header>
+
       {/* 사이드바 */}
       <Sidebar
         activeSection={activeSection}
         onSelect={setActiveSection}
         userEmail={userEmail}
         avatarUrl={avatarUrl}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
 
       {/* 콘텐츠 영역 */}
       <main className="flex-1 overflow-y-auto">
-        <div className={`mx-auto p-8 transition-all duration-500 ${
+        <div className={`mx-auto p-4 md:p-8 transition-all duration-500 ${
           (activeSection === 'manage' || activeSection === 'stats') ? 'max-w-6xl' : 'max-w-2xl'
         }`}>
           {/* 섹션 타이틀 */}
