@@ -27,7 +27,7 @@ export async function getAdminDashboardData() {
     supabase.from('profiles').select('id, email, is_admin, created_at').order('created_at', { ascending: false }),
     supabase.from('habits').select('id, user_id, title, created_at, color').is('deleted_at', null),
     supabase.from('habit_logs').select('user_id, log_date').gte('log_date', thirtyDaysAgo),
-    supabase.from('habit_logs').select('user_id, habit_id, log_date').eq('log_date', todayStr)
+    supabase.from('habit_logs').select('user_id, habit_id, log_date, mood, comment, admin_comment').eq('log_date', todayStr)
   ])
 
   if (profilesRes.error) return { data: null, error: profilesRes.error.message }
@@ -44,12 +44,18 @@ export async function getAdminDashboardData() {
     const userTodayLogs = allTodayLogs.filter(l => l.user_id === p.id)
     
     // 오늘의 습관 상세 상태
-    const todayDetails = userHabits.map(h => ({
-      id: h.id,
-      title: h.title,
-      color: h.color,
-      isCompleted: userTodayLogs.some(l => l.habit_id === h.id)
-    }))
+    const todayDetails = userHabits.map(h => {
+      const log = userTodayLogs.find(l => l.habit_id === h.id)
+      return {
+        id: h.id,
+        title: h.title,
+        color: h.color,
+        isCompleted: !!log,
+        mood: log?.mood || null,
+        comment: log?.comment || null,
+        adminComment: log?.admin_comment || null
+      }
+    })
     const daysSinceJoin = Math.min(30, Math.max(1, differenceInDays(startOfToday(), new Date(p.created_at))))
     
     // 이론적 최대 완료 가능 횟수 (습관 수 * 경과일)
@@ -86,3 +92,32 @@ export async function getAdminDashboardData() {
     error: null
   }
 }
+
+export async function updateAdminComment(userId: string, habitId: string, logDate: string, comment: string) {
+  const supabase = createClient()
+  
+  // 관리자 권한 확인
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: '로그인이 필요합니다.' }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.is_admin !== true) {
+    return { error: '관리자 권한이 없습니다.' }
+  }
+
+  const { error } = await supabase
+    .from('habit_logs')
+    .update({ admin_comment: comment })
+    .eq('user_id', userId)
+    .eq('habit_id', habitId)
+    .eq('log_date', logDate)
+
+  if (error) return { error: error.message }
+  return { error: null }
+}
+

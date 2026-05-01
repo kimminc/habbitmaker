@@ -4,16 +4,21 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Users, CheckCircle2, ListChecks, TrendingUp, 
-  Mail, Calendar, ShieldCheck, User as UserIcon,
-  ChevronDown, ChevronUp, Check, X, Clock
+  Calendar, ShieldCheck, User as UserIcon,
+  ChevronDown, ChevronUp, Check, X, Clock,
+  MessageSquare, Send, Smile, Meh, Frown
 } from 'lucide-react'
 import { format } from 'date-fns'
+import { updateAdminComment } from '@/features/admin/actions'
 
 interface HabitDetail {
   id: string
   title: string
   color: string
   isCompleted: boolean
+  mood: string | null
+  comment: string | null
+  adminComment: string | null
 }
 
 interface UserStat {
@@ -42,6 +47,8 @@ interface AdminDashboardProps {
 export function AdminDashboard({ data }: AdminDashboardProps) {
   const { summary, userStats } = data
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null)
+  const [replyInputs, setReplyInputs] = useState<Record<string, string>>({})
+  const [isSubmitting, setIsSubmitting] = useState<string | null>(null)
 
   const cards = [
     { label: '전체 사용자', value: summary.totalUsers, unit: '명', icon: Users, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950/30' },
@@ -54,9 +61,32 @@ export function AdminDashboard({ data }: AdminDashboardProps) {
     setExpandedUserId(expandedUserId === userId ? null : userId)
   }
 
+  const handleReplyChange = (habitId: string, value: string) => {
+    setReplyInputs(prev => ({ ...prev, [habitId]: value }))
+  }
+
+  const submitReply = async (userId: string, habitId: string, currentVal: string) => {
+    const todayStr = format(new Date(), 'yyyy-MM-dd')
+    setIsSubmitting(habitId)
+    const { error } = await updateAdminComment(userId, habitId, todayStr, currentVal)
+    setIsSubmitting(null)
+    if (!error) {
+      alert('응원 메시지를 남겼습니다! 🐟✨')
+    } else {
+      alert('저장에 실패했습니다: ' + error)
+    }
+  }
+
+  const moodIcon = (mood: string | null) => {
+    if (mood === '만족') return <Smile className="text-emerald-500" size={16} />
+    if (mood === '보통') return <Meh className="text-amber-500" size={16} />
+    if (mood === '불만족') return <Frown className="text-rose-500" size={16} />
+    return null
+  }
+
   return (
     <div className="space-y-8 pb-10">
-      {/* 요약 카드 그리드 */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {cards.map((card, i) => (
           <motion.div
@@ -79,7 +109,7 @@ export function AdminDashboard({ data }: AdminDashboardProps) {
         ))}
       </div>
 
-      {/* 사용자별 성취도 리스트 */}
+      {/* User Stats Table */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -177,7 +207,7 @@ export function AdminDashboard({ data }: AdminDashboardProps) {
                     </td>
                   </motion.tr>
 
-                  {/* 상세 정보 (확장 영역) */}
+                  {/* Expandable Details Area */}
                   <AnimatePresence>
                     {expandedUserId === user.id && (
                       <motion.tr
@@ -188,44 +218,91 @@ export function AdminDashboard({ data }: AdminDashboardProps) {
                       >
                         <td colSpan={5} className="px-8 py-0">
                           <div className="pb-8 pt-2">
-                            <div className="rounded-[1.5rem] bg-gray-50/80 p-6 dark:bg-gray-800/40 border border-gray-100/50 dark:border-gray-700/50">
-                              <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                <Clock size={12} /> 오늘의 습관 현황
-                              </h4>
-                              
-                              {user.todayDetails.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                  {user.todayDetails.map((habit) => (
-                                    <div 
-                                      key={habit.id}
-                                      className="flex items-center justify-between rounded-xl bg-white p-3 shadow-sm dark:bg-gray-900 border border-gray-100/50 dark:border-gray-800/50"
-                                    >
-                                      <div className="flex items-center gap-3 overflow-hidden">
-                                        <div 
-                                          className="h-2 w-2 shrink-0 rounded-full" 
-                                          style={{ backgroundColor: habit.color }} 
-                                        />
-                                        <span className="text-sm font-bold text-gray-700 dark:text-gray-200 truncate">
-                                          {habit.title}
-                                        </span>
+                            <div className="rounded-[1.5rem] bg-gray-50/80 p-6 dark:bg-gray-800/40 border border-gray-100/50 dark:border-gray-700/50 space-y-6">
+                              {/* Completed Habits Section */}
+                              <div>
+                                <h4 className="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                  <CheckCircle2 size={12} /> 완료된 습관
+                                </h4>
+                                <div className="space-y-3">
+                                  {user.todayDetails.filter(h => h.isCompleted).length > 0 ? (
+                                    user.todayDetails.filter(h => h.isCompleted).map((habit) => (
+                                      <div key={habit.id} className="rounded-2xl bg-white p-5 shadow-sm dark:bg-gray-900 border border-gray-100/50 dark:border-gray-800/50">
+                                        <div className="flex items-start justify-between">
+                                          <div className="flex items-center gap-3">
+                                            <div className="h-2 w-2 rounded-full" style={{ backgroundColor: habit.color }} />
+                                            <span className="font-bold text-gray-900 dark:text-white">{habit.title}</span>
+                                            {habit.mood && (
+                                              <div className="flex items-center gap-1 rounded-full bg-gray-50 px-2 py-0.5 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                                                {moodIcon(habit.mood)}
+                                                <span className="text-[10px] font-bold text-gray-500">{habit.mood}</span>
+                                              </div>
+                                            )}
+                                          </div>
+                                          <span className="text-[10px] font-black text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-full dark:bg-emerald-950/50">COMPLETED</span>
+                                        </div>
+                                        
+                                        {/* User Comment */}
+                                        <div className="mt-3 rounded-xl bg-gray-50 p-3 dark:bg-gray-800/50 italic text-sm text-gray-600 dark:text-gray-400">
+                                          "{habit.comment || '남긴 코멘트가 없습니다.'}"
+                                        </div>
+
+                                        {/* Admin Reply Area */}
+                                        <div className="mt-4 pt-4 border-t border-gray-50 dark:border-gray-800">
+                                          <div className="flex items-start gap-3">
+                                            <div className="h-8 w-8 shrink-0 flex items-center justify-center rounded-lg bg-blue-50 text-blue-500 dark:bg-blue-950/50">
+                                              <MessageSquare size={16} />
+                                            </div>
+                                            <div className="flex-1 space-y-2">
+                                              <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">관리자 응원 메시지</p>
+                                              <div className="relative">
+                                                <input 
+                                                  type="text" 
+                                                  placeholder="응원 한마디 남겨주세요..."
+                                                  defaultValue={habit.adminComment || ''}
+                                                  onChange={(e) => handleReplyChange(habit.id, e.target.value)}
+                                                  className="w-full rounded-xl border-none bg-gray-50 px-4 py-2.5 pr-12 text-sm focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
+                                                />
+                                                <button 
+                                                  onClick={() => submitReply(user.id, habit.id, replyInputs[habit.id] ?? habit.adminComment ?? '')}
+                                                  disabled={isSubmitting === habit.id}
+                                                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors disabled:opacity-50"
+                                                >
+                                                  {isSubmitting === habit.id ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" /> : <Send size={16} />}
+                                                </button>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
                                       </div>
-                                      {habit.isCompleted ? (
-                                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
-                                          <Check size={14} strokeWidth={3} />
-                                        </div>
-                                      ) : (
-                                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-300 dark:bg-gray-800 dark:text-gray-600">
-                                          <X size={14} strokeWidth={3} />
-                                        </div>
-                                      )}
-                                    </div>
-                                  ))}
+                                    ))
+                                  ) : (
+                                    <p className="text-sm font-medium text-gray-400 py-2">아직 완료된 습관이 없습니다.</p>
+                                  )}
                                 </div>
-                              ) : (
-                                <div className="text-center py-6">
-                                  <p className="text-sm font-medium text-gray-400">등록된 습관이 없습니다.</p>
+                              </div>
+
+                              {/* Uncompleted Habits Section */}
+                              <div>
+                                <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                  <X size={12} /> 미완료 습관
+                                </h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {user.todayDetails.filter(h => !h.isCompleted).length > 0 ? (
+                                    user.todayDetails.filter(h => !h.isCompleted).map((habit) => (
+                                      <div 
+                                        key={habit.id}
+                                        className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 shadow-sm dark:bg-gray-900 border border-gray-100/50 dark:border-gray-800/50"
+                                      >
+                                        <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: habit.color }} />
+                                        <span className="text-xs font-bold text-gray-500 dark:text-gray-400">{habit.title}</span>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <p className="text-sm font-medium text-emerald-500 py-2">오늘 모든 습관을 완료했습니다! ✨</p>
+                                  )}
                                 </div>
-                              )}
+                              </div>
                             </div>
                           </div>
                         </td>
