@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Users, CheckCircle2, ListChecks, TrendingUp, 
@@ -318,5 +318,3 @@ export function AdminDashboard({ data }: AdminDashboardProps) {
     </div>
   )
 }
-
-import React from 'react'
