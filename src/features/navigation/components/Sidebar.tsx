@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { LogoutButton } from '@/features/auth/components/LogoutButton'
 import { ThemeToggle } from './ThemeToggle'
 
-export type Section = 'home' | 'manage' | 'add' | 'delete' | 'stats' | 'settings'
+export type Section = 'home' | 'manage' | 'add' | 'stats' | 'settings'
 
 const MENU_ITEMS: { id: Section; icon: string; label: string }[] = [
   { id: 'home',   icon: '🏠', label: 'HOME'        },

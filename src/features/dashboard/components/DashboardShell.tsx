@@ -28,7 +28,6 @@ const SECTION_TITLES: Record<Section, string> = {
   home:   '🏠 오늘의 습관',
   manage: '📋 나의 습관관리',
   add:    '➕ 습관 추가하기',
-  delete: '🗑️ 습관 삭제하기',
   stats:  '📊 습관 통계',
   settings: '⚙️ 설정',
 }
@@ -131,7 +130,7 @@ export function DashboardShell({
                     />
                   )}
 
-                  {(activeSection === 'manage' || activeSection === 'add' || activeSection === 'delete') && (
+                  {(activeSection === 'manage' || activeSection === 'add') && (
                     <HabitManageSection 
                       habits={habits || []} 
                       logs={allLogs || []} 
