@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import Image from 'next/image'
 import { LogoutButton } from '@/features/auth/components/LogoutButton'
 import { ThemeToggle } from './ThemeToggle'
