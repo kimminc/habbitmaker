@@ -16,7 +16,7 @@ export async function getAdminDashboardData() {
     .eq('id', user.id)
     .single()
 
-  if (profile?.is_admin !== 'Y') {
+  if (profile?.is_admin !== true) {
     return { data: null, error: '관리자 권한이 없습니다.' }
   }
 
@@ -50,7 +50,7 @@ export async function getAdminDashboardData() {
     return {
       id: p.id,
       email: p.email,
-      is_admin: p.is_admin === 'Y',
+      is_admin: !!p.is_admin,
       createdAt: p.created_at,
       habitCount: userHabits.length,
       logCount: userLogs.length,

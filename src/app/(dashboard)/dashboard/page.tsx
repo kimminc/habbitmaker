@@ -36,7 +36,7 @@ export default async function DashboardPage() {
       localDate={localDate}
       userEmail={user?.email}
       avatarUrl={user?.user_metadata?.avatar_url as string | undefined}
-      isAdmin={profileResult.data?.is_admin === 'Y'}
+      isAdmin={profileResult.data?.is_admin === true}
     />
   )
 }
