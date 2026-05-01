@@ -2,7 +2,17 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, CheckCircle2, BarChart3, Target, Zap, ShieldCheck } from 'lucide-react'
 
-export default function LandingPage() {
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+
+export default async function LandingPage() {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (user) {
+    redirect('/dashboard')
+  }
+
   return (
     <div className="min-h-screen bg-white text-slate-900 selection:bg-green-100 selection:text-green-900">
       {/* 1. 네비게이션 */}
