@@ -3,9 +3,13 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Sidebar, type Section } from '@/features/navigation/components/Sidebar'
+import { BottomNav } from '@/features/navigation/components/BottomNav'
 import { ChecklistSection } from '@/features/habits/components/ChecklistSection'
 import { HabitManageSection } from '@/features/habits/components/HabitManageSection'
 import { HabitStats } from '@/features/habits/components/HabitStats'
+import { LogoutButton } from '@/features/auth/components/LogoutButton'
+import { ThemeToggle } from '@/features/navigation/components/ThemeToggle'
+import Image from 'next/image'
 import type { Habit, HabitMood } from '@/types/database'
 
 interface DashboardShellProps {
@@ -26,6 +30,7 @@ const SECTION_TITLES: Record<Section, string> = {
   add:    '➕ 습관 추가하기',
   delete: '🗑️ 습관 삭제하기',
   stats:  '📊 습관 통계',
+  settings: '⚙️ 설정',
 }
 
 const contentVariants = {
@@ -56,14 +61,21 @@ export function DashboardShell({
           <span className="text-2xl">🌻</span>
           <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">HabbitMaker</h1>
         </div>
-        <button 
-          onClick={() => setIsSidebarOpen(true)}
-          className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-        >
-          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
+        <div className="flex items-center gap-2">
+          {avatarUrl ? (
+            <Image 
+              src={avatarUrl} 
+              alt="프로필" 
+              width={32} 
+              height={32} 
+              className="h-8 w-8 rounded-full object-cover" 
+            />
+          ) : (
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-sm dark:bg-green-900/50">
+              👤
+            </div>
+          )}
+        </div>
       </header>
 
       {/* 사이드바 */}
@@ -76,10 +88,13 @@ export function DashboardShell({
         onClose={() => setIsSidebarOpen(false)}
       />
 
+      {/* 하단 네비게이션 (모바일 전용) */}
+      <BottomNav activeSection={activeSection} onSelect={setActiveSection} />
+
       {/* 콘텐츠 영역 */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto pb-24 md:pb-0">
         <div className={`mx-auto p-4 md:p-8 transition-all duration-500 ${
-          (activeSection === 'manage' || activeSection === 'stats') ? 'max-w-6xl' : 'max-w-2xl'
+          (activeSection === 'manage' || activeSection === 'stats' || activeSection === 'settings') ? 'max-w-6xl' : 'max-w-2xl'
         }`}>
           {/* 섹션 타이틀 */}
           <motion.h2
@@ -131,6 +146,52 @@ export function DashboardShell({
                       completedHabitIds={completedHabitIds || []}
                       allLogs={allLogs || []}
                     />
+                  )}
+
+                  {activeSection === 'settings' && (
+                    <div className="space-y-6">
+                      <div className="rounded-2xl bg-white p-6 shadow-sm dark:bg-gray-900">
+                        <h3 className="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">계정 설정</h3>
+                        <div className="flex items-center justify-between py-2">
+                          <div className="flex items-center gap-3">
+                            {avatarUrl ? (
+                              <Image 
+                                src={avatarUrl} 
+                                alt="프로필" 
+                                width={48} 
+                                height={48} 
+                                className="h-12 w-12 rounded-full object-cover" 
+                              />
+                            ) : (
+                              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-xl dark:bg-green-900/50">
+                                👤
+                              </div>
+                            )}
+                            <div>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">{userEmail ?? '대표님'}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">로그인됨</p>
+                            </div>
+                          </div>
+                          <LogoutButton />
+                        </div>
+                      </div>
+
+                      <div className="rounded-2xl bg-white p-6 shadow-sm dark:bg-gray-900">
+                        <h3 className="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">앱 설정</h3>
+                        <div className="flex items-center justify-between py-2">
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">테마 설정</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">다크 모드 및 라이트 모드 전환</p>
+                          </div>
+                          <ThemeToggle />
+                        </div>
+                      </div>
+
+                      <div className="rounded-2xl bg-gray-100 p-6 text-center dark:bg-gray-800">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">HabbitMaker v1.0.0</p>
+                        <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">© 2026 Connect AI LAB. All rights reserved.</p>
+                      </div>
+                    </div>
                   )}
                 </>
               )}

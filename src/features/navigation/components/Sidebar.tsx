@@ -5,14 +5,13 @@ import Image from 'next/image'
 import { LogoutButton } from '@/features/auth/components/LogoutButton'
 import { ThemeToggle } from './ThemeToggle'
 
-export type Section = 'home' | 'manage' | 'add' | 'delete' | 'stats'
+export type Section = 'home' | 'manage' | 'add' | 'delete' | 'stats' | 'settings'
 
 const MENU_ITEMS: { id: Section; icon: string; label: string }[] = [
   { id: 'home',   icon: '🏠', label: 'HOME'        },
-  { id: 'manage', icon: '📋', label: '나의 습관관리' },
-  { id: 'add',    icon: '➕', label: '습관 추가하기' },
-  { id: 'delete', icon: '🗑️', label: '습관 삭제하기' },
-  { id: 'stats',  icon: '📊', label: '습관 통계'    },
+  { id: 'manage', icon: '📋', label: '관리'        },
+  { id: 'stats',  icon: '📊', label: '통계'        },
+  { id: 'settings', icon: '⚙️', label: '설정'      },
 ]
 
 interface SidebarProps {
