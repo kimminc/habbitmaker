@@ -15,17 +15,13 @@ const NAV_ITEMS: { id: Section; icon: any; label: string }[] = [
   { id: 'manage', icon: LayoutList, label: '관리' },
   { id: 'stats', icon: BarChart3, label: '통계' },
   { id: 'settings', icon: Settings, label: '설정' },
+  { id: 'admin', icon: ShieldAlert, label: '관리자' },
 ]
 
 export function BottomNav({ activeSection, onSelect, isAdmin }: BottomNavProps) {
-  const items = [
-    ...NAV_ITEMS,
-    ...(isAdmin ? [{ id: 'admin' as Section, icon: ShieldAlert, label: '관리자' }] : [])
-  ]
-
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-gray-100 bg-white/80 pb-safe pt-2 backdrop-blur-lg dark:border-gray-800 dark:bg-gray-900/80 md:hidden">
-      {items.map((item) => {
+      {NAV_ITEMS.map((item) => {
         const Icon = item.icon
         const isActive = activeSection === item.id
 

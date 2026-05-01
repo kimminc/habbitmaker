@@ -12,6 +12,7 @@ const MENU_ITEMS: { id: Section; icon: string; label: string }[] = [
   { id: 'manage', icon: '📋', label: '관리'        },
   { id: 'stats',  icon: '📊', label: '통계'        },
   { id: 'settings', icon: '⚙️', label: '설정'      },
+  { id: 'admin', icon: '🛡️', label: '관리자'      },
 ]
 
 interface SidebarProps {
@@ -73,10 +74,7 @@ export function Sidebar({ activeSection, onSelect, userEmail, avatarUrl, isOpen,
 
         {/* 메뉴 */}
         <nav className="flex-1 space-y-1 p-4">
-          {[
-            ...MENU_ITEMS,
-            ...(isAdmin ? [{ id: 'admin' as Section, icon: '🛡️', label: '관리자' }] : [])
-          ].map((item, i) => (
+          {MENU_ITEMS.map((item, i) => (
             <motion.button
               key={item.id}
               initial={{ x: -20, opacity: 0 }}
