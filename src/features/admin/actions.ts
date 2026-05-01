@@ -20,8 +20,8 @@ export async function getAdminDashboardData() {
     return { data: null, error: '관리자 권한이 없습니다.' }
   }
 
-  const todayStr = format(startOfToday(), 'yyyy-MM-dd')
-  const thirtyDaysAgo = format(subDays(startOfToday(), 30), 'yyyy-MM-dd')
+  const todayStr = format(new Date(), 'yyyy-MM-dd')
+  const thirtyDaysAgo = format(subDays(new Date(), 30), 'yyyy-MM-dd')
 
   const [profilesRes, habitsRes, logsRes, todayLogsRes] = await Promise.all([
     supabase.from('profiles').select('id, email, is_admin, created_at').order('created_at', { ascending: false }),
@@ -56,7 +56,7 @@ export async function getAdminDashboardData() {
         adminComment: log?.admin_comment || null
       }
     })
-    const daysSinceJoin = Math.min(30, Math.max(1, differenceInDays(startOfToday(), new Date(p.created_at))))
+    const daysSinceJoin = Math.min(30, Math.max(1, differenceInDays(new Date(), new Date(p.created_at))))
     
     // 이론적 최대 완료 가능 횟수 (습관 수 * 경과일)
     const maxPossible = userHabits.length * daysSinceJoin
@@ -78,7 +78,7 @@ export async function getAdminDashboardData() {
   const summary = {
     totalUsers: allProfiles.length,
     totalHabits: allHabits.length,
-    todayLogs: allLogs.filter(l => l.log_date === format(startOfToday(), 'yyyy-MM-dd')).length,
+    todayLogs: allLogs.filter(l => l.log_date === todayStr).length,
     averageCompletion: userStats.length > 0 
       ? Math.round(userStats.reduce((acc, curr) => acc + curr.completionRate, 0) / userStats.length) 
       : 0

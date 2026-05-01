@@ -20,7 +20,7 @@ const NAV_ITEMS: { id: Section; icon: any; label: string }[] = [
 
 export function BottomNav({ activeSection, onSelect, isAdmin }: BottomNavProps) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-gray-100 bg-white/80 pb-safe pt-2 backdrop-blur-lg dark:border-gray-800 dark:bg-gray-900/80 md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-gray-100 bg-white/80 pb-safe pt-1 backdrop-blur-lg dark:border-gray-800 dark:bg-gray-900/80 md:hidden">
       {NAV_ITEMS.map((item) => {
         const Icon = item.icon
         const isActive = activeSection === item.id
@@ -29,21 +29,24 @@ export function BottomNav({ activeSection, onSelect, isAdmin }: BottomNavProps) 
           <button
             key={item.id}
             onClick={() => onSelect(item.id)}
-            className="relative flex flex-col items-center justify-center px-6 py-4 transition-colors"
+            className="relative flex flex-1 flex-col items-center justify-center py-2 transition-colors"
           >
             <div
-              className={`flex h-12 w-12 items-center justify-center rounded-2xl transition-all ${
+              className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${
                 isActive
                   ? 'bg-green-50 text-green-600 shadow-sm dark:bg-green-900/30 dark:text-green-400'
                   : 'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300'
               }`}
             >
-              <Icon size={28} strokeWidth={isActive ? 2.5 : 2} />
+              <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
             </div>
+            <span className={`mt-0.5 text-[10px] font-bold ${isActive ? 'text-green-600' : 'text-gray-400'}`}>
+              {item.label}
+            </span>
             {isActive && (
               <motion.div
                 layoutId="bottomNavIndicator"
-                className="absolute bottom-1 h-1 w-6 rounded-full bg-green-500"
+                className="absolute bottom-0 h-0.5 w-4 rounded-full bg-green-500"
                 transition={{ type: 'spring', stiffness: 380, damping: 30 }}
               />
             )}
